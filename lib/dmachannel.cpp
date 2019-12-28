@@ -276,6 +276,44 @@ void CDMAChannel::SetupMemCopy2D (void *pDestination, const void *pSource,
 	CleanAndInvalidateDataCacheRange ((uintptr) pSource, nBlockLength*nBlockCount);
 }
 
+void CDMAChannel::SetupMemCopy2D (void *pDestination, const void *pSource,
+				  size_t nBlockLength, unsigned nBlockCount,
+                                  size_t nDestinationBlockStride, size_t nSourceBlockStride,
+				  unsigned nBurstLength)
+{
+	assert (pDestination != 0);
+	assert (pSource != 0);
+	assert (nBlockLength > 0);
+	assert (nBlockLength <= 0xFFFF);
+	assert (nBlockCount > 0);
+	assert (nBlockCount <= 0x3FFF);
+	assert (nDestinationBlockStride <= 0xFFFF);
+	assert (nSourceBlockStride <= 0xFFFF);
+	assert (nBurstLength <= 15);
+
+	assert (!(read32 (ARM_DMACHAN_DEBUG (m_nChannel)) & DEBUG_LITE));
+
+	assert (m_pControlBlock != 0);
+
+	m_pControlBlock->nTransferInformation     =   (nBurstLength << TI_BURST_LENGTH_SHIFT)
+						    | TI_SRC_WIDTH
+						    | TI_SRC_INC
+						    | TI_DEST_WIDTH
+						    | TI_DEST_INC
+						    | TI_TDMODE;
+	m_pControlBlock->nSourceAddress           = BUS_ADDRESS ((uintptr) pSource);
+	m_pControlBlock->nDestinationAddress      = BUS_ADDRESS ((uintptr) pDestination);
+	m_pControlBlock->nTransferLength          =   ((nBlockCount-1) << TXFR_LEN_YLENGTH_SHIFT)
+						    | (nBlockLength << TXFR_LEN_XLENGTH_SHIFT);
+	m_pControlBlock->n2DModeStride            = (nDestinationBlockStride << STRIDE_DEST_SHIFT)
+                                                    | (nSourceBlockStride << STRIDE_SRC_SHIFT);
+	m_pControlBlock->nNextControlBlockAddress = 0;
+
+	m_nDestinationAddress = 0;
+
+	CleanAndInvalidateDataCacheRange ((uintptr) pSource, nBlockLength*nBlockCount);
+}
+
 void CDMAChannel::SetCompletionRoutine (TDMACompletionRoutine *pRoutine, void *pParam)
 {
 	assert (m_nChannel <= 12);

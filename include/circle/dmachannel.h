@@ -79,6 +79,16 @@ public:
 			     size_t nBlockLength, unsigned nBlockCount, size_t nBlockStride,
 			     unsigned nBurstLength = 0);
 
+	// copy nBlockCount blocks of nBlockLength size and skip nDestinationBlockStride
+	// bytes after each block on destination, skip nSourceBlockStride bytes after each
+	// block on source, destination cache is not touched nBurstLength > 0 increases
+	// speed, but may congest the system bus (this method is not supported with
+	// DMA_CHANNEL_LITE)
+	void SetupMemCopy2D (void *pDestination, const void *pSource,
+			     size_t nBlockLength, unsigned nBlockCount,
+                             size_t nDestinationBlockStride, size_t nSourceBlockStride,
+			     unsigned nBurstLength);
+
 	void SetCompletionRoutine (TDMACompletionRoutine *pRoutine, void *pParam);
 
 	void Start (void);
