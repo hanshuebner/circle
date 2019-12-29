@@ -141,7 +141,7 @@ CSerialDevice::~CSerialDevice (void)
 	m_pInterruptSystem = 0;
 }
 
-boolean CSerialDevice::Initialize (unsigned nBaudrate)
+boolean CSerialDevice::SetSpeed (unsigned nBaudrate)
 {
 	unsigned nClockRate = CMachineInfo::Get ()->GetClockRate (CLOCK_ID_UART);
 	assert (nClockRate > 0);
@@ -153,6 +153,26 @@ boolean CSerialDevice::Initialize (unsigned nBaudrate)
 	unsigned nFractDiv2 = (nClockRate % nBaud16) * 8 / nBaudrate;
 	unsigned nFractDiv = nFractDiv2 / 2 + nFractDiv2 % 2;
 	assert (nFractDiv <= 0x3F);
+
+        PeripheralEntry ();
+
+	write32 (ARM_UART0_CR, 0);
+        write32 (ARM_UART0_LCRH, 0);
+
+	write32 (ARM_UART0_IBRD, nIntDiv);
+	write32 (ARM_UART0_FBRD, nFractDiv);
+
+        write32 (ARM_UART0_LCRH, LCRH_WLEN8_MASK | LCRH_FEN_MASK);
+	write32 (ARM_UART0_CR, CR_UART_EN_MASK | CR_TXE_MASK | CR_RXE_MASK);
+
+        PeripheralExit ();
+
+        return TRUE;
+}
+
+boolean CSerialDevice::Initialize (unsigned nBaudrate)
+{
+	SetSpeed(nBaudrate);
 
 	if (m_pInterruptSystem != 0)
 	{
@@ -172,8 +192,6 @@ boolean CSerialDevice::Initialize (unsigned nBaudrate)
 
 	write32 (ARM_UART0_IMSC, 0);
 	write32 (ARM_UART0_ICR,  0x7FF);
-	write32 (ARM_UART0_IBRD, nIntDiv);
-	write32 (ARM_UART0_FBRD, nFractDiv);
 
 	if (m_pInterruptSystem != 0)
 	{

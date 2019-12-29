@@ -58,6 +58,10 @@ public:
 	/// \return Number of bytes successfully sent (< 0 on error)
 	int Write (const void *pBuffer, size_t nCount);
 
+	/// \param nBaudrate Baud rate in bits per second
+	/// \return Operation successful?
+	boolean SetSpeed (unsigned nBaudrate);
+
 #ifndef USE_RPI_STUB_AT
 	/// \param pBuffer Pointer to buffer for received data
 	/// \param nCount Maximum number of bytes to be received
