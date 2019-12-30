@@ -144,7 +144,7 @@ void CLogger::WriteV (const char *pSource, TLogSeverity Severity, const char *pM
 		Buffer.Append ("\x1b[0m");
 	}
 
-	Buffer.Append ("\n");
+	Buffer.Append ("\r\n");
 
 	Write (Buffer);
 
